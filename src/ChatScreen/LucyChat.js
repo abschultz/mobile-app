@@ -1,5 +1,5 @@
 import React from "react";
-import { AppRegistry, View, StatusBar } from "react-native";
+import { AppRegistry, View, StatusBar, ListView } from "react-native";
 import { NavigationActions } from "react-navigation";
 import {
   Button,
@@ -31,6 +31,7 @@ import HomeScreen from "../HomeScreen";
 export default class LucyChat extends React.Component {
   constructor(props) {
     super(props);
+    this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state = {notes:[]};
   }
 
@@ -44,11 +45,9 @@ export default class LucyChat extends React.Component {
         'https://sjcz7bvg5j.execute-api.us-east-1.amazonaws.com/dev/notes'
       );
       let responseJson = await response.json();
-      console.log(responseJson);
       this.setState({
         notes: responseJson
       });
-      return responseJson.movies;
     } catch (error) {
       console.error(error);
     }
@@ -56,7 +55,6 @@ export default class LucyChat extends React.Component {
 
   createNote() {
     if (!this.state.noteTitle || !this.state.noteDescription) {
-      console.log('needs note');
       return;
     }
 
@@ -73,7 +71,6 @@ export default class LucyChat extends React.Component {
     })
     .then((response) => response.json())
     .then((responseJson) => {
-      console.log(responseJson);
       this.getNotes();
     })
     .catch((error) => {
@@ -81,7 +78,34 @@ export default class LucyChat extends React.Component {
     });
   }
 
+  deleteNote(noteId) {
+    console.log('deleting note', noteId)
+    fetch(`https://sjcz7bvg5j.execute-api.us-east-1.amazonaws.com/dev/notes/${noteId}`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      }
+    })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      console.log(responseJson);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+
+  deleteRow(secId, rowId, rowMap) {
+    rowMap[`${secId}${rowId}`].props.closeRow();
+    const newData = [...this.state.notes];
+    this.deleteNote(newData[rowId]._id);
+    newData.splice(rowId, 1);
+    this.setState({ notes: newData });
+  }
+
   render() {
+    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     return (
       <Container>
         <Header>
@@ -122,16 +146,23 @@ export default class LucyChat extends React.Component {
           >
             <Text>Add Note</Text>
           </Button>
-
-          <List>
-            {this.state.notes.map((x,idx)=>{
-              return (
-                <ListItem key={idx}>
-                  <Text>{x.title}</Text>
-                </ListItem>
-              )
-            })}
-          </List>
+          <List
+            dataSource={this.ds.cloneWithRows(this.state.notes)}
+            renderRow={data =>
+              <ListItem>
+                <Text> {data.title} </Text>
+              </ListItem>}
+            renderLeftHiddenRow={data =>
+              <Button full onPress={() => alert(data.description)}>
+                <Icon active name="information-circle" />
+              </Button>}
+            renderRightHiddenRow={(data, secId, rowId, rowMap) =>
+              <Button full danger onPress={_ => this.deleteRow(secId, rowId, rowMap)}>
+                <Icon active name="trash" />
+              </Button>}
+            leftOpenValue={75}
+            rightOpenValue={-75}
+          />
         </Content>
       </Container>
     );
