@@ -3,12 +3,14 @@ import { View } from "react-native";
 import { Container, Content, Picker, Button, Text } from "native-base";
 import Expo from "expo";
 
-import HomeScreen from "./src/HomeScreen/index.js";
+import Main from "./src/index.js";
+import LoginScreen from "./src/LoginScreen/index.js";
 export default class AwesomeApp extends Component {
   constructor() {
     super();
     this.state = {
-      isReady: false
+      isReady: false,
+      isLoggedIn: false
     };
   }
   async componentWillMount() {
@@ -23,6 +25,13 @@ export default class AwesomeApp extends Component {
     if (!this.state.isReady) {
       return <Expo.AppLoading />;
     }
-    return <HomeScreen />;
+    if (!this.state.isLoggedIn) {
+      return <LoginScreen
+        onLoginPress={() => this.setState({isLoggedIn: true})}
+      />
+    }
+    return <Main
+      onLogoutPress={() => this.setState({isLoggedIn: false})}
+    />;
   }
 }

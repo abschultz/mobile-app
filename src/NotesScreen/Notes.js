@@ -1,6 +1,5 @@
 import React from "react";
 import { AppRegistry, View, StatusBar, ListView } from "react-native";
-import { NavigationActions } from "react-navigation";
 import {
   Button,
   Text,
@@ -25,7 +24,6 @@ import {
   FooterTab,
   Label
 } from "native-base";
-import HomeScreen from "../HomeScreen";
 
 
 export default class LucyChat extends React.Component {
@@ -109,14 +107,7 @@ export default class LucyChat extends React.Component {
     return (
       <Container>
         <Header>
-          <Left>
-            <Button
-              transparent
-              onPress={() => this.props.navigation.navigate("DrawerOpen")}
-            >
-              <Icon name="menu" />
-            </Button>
-          </Left>
+          <Left />
           <Body>
             <Title>Notes</Title>
           </Body>
@@ -146,6 +137,16 @@ export default class LucyChat extends React.Component {
           >
             <Text>Add Note</Text>
           </Button>
+
+          <Button
+            rounded
+            danger
+            style={{ marginTop: 20, alignSelf: "center" }}
+            onPress={() => this.setState({isLoggedIn: false})}
+          >
+            <Text>Logout</Text>
+          </Button>
+
           <List
             dataSource={this.ds.cloneWithRows(this.state.notes)}
             renderRow={data =>
